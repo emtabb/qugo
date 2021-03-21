@@ -1,7 +1,8 @@
 package qugo
 
-import "github.com/emtabb/qugo/impl"
+import . "github.com/emtabb/qugo/qu"
+import . "github.com/emtabb/qugo/qu/impl"
 
-func Operator() *impl.Quantum {
-	return new(impl.Quantum)
+func Operator() Quantum {
+	return new(QuantumImpl)
 }
