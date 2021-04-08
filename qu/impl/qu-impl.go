@@ -1,59 +1,49 @@
 package impl;
 
-import "github.com/emtabb/state"
 import . "github.com/emtabb/qugo/qu"
 
 type QuantumImpl struct {
 	Quantum
-	states []state.State
+	states []interface{}
 	skip int32
 	limit int32
-	tensor [][]state.State
+	tensor [][]interface{}
 }
 
-func (quantum *QuantumImpl) ByInterfaces(interfaces []interface{}) Quantum {
-	toStates := make([]state.State, len(interfaces))
-	for i, _state := range interfaces {
-		toStates[i] = _state.(state.State)
-	}
-	quantum.states = toStates[:]
-	return quantum
-}
-
-func (quantum *QuantumImpl) Init(states []state.State) Quantum {
+func (quantum *QuantumImpl) Init(states []interface{}) Quantum {
 	quantum.states = states[:]
 	return quantum
 }
 
-func (quantum *QuantumImpl) Of(states ...state.State) Quantum {
+func (quantum *QuantumImpl) Of(states ...interface{}) Quantum {
 	quantum.states = states[:]
 	return quantum
 }
 
-func (quantum *QuantumImpl) Map(f func (state.State) state.State) Quantum {
+func (quantum *QuantumImpl) Map(f func (interface{}) interface{}) Quantum {
 	for i, state := range quantum.states {
 		quantum.states[i] = f(state)
 	}
 	return quantum
 }
 
-func (quantum *QuantumImpl) FlatMap(f func ([]state.State) []state.State) Quantum {
+func (quantum *QuantumImpl) FlatMap(f func ([]interface{}) []interface{}) Quantum {
 	return quantum
 }
 
-func (quantum *QuantumImpl) Reduce(reductState state.State, f func (state1 state.State, state2 state.State) state.State) Quantum {
+func (quantum *QuantumImpl) Reduce(reduceState interface{}, f func (state1 interface{}, state2 interface{}) interface{}) Quantum {
 	for i, state := range quantum.states { 
-		quantum.states[i] = f(state, reductState)
+		quantum.states[i] = f(state, reduceState)
 	}
 	return quantum
 }
 
-func (quantum *QuantumImpl) Quantized(f func (state.State) []state.State) Quantum {
+func (quantum *QuantumImpl) Quantized(f func (interface{}) []interface{}) Quantum {
 
 	return quantum
 }
 
-func (quantum *QuantumImpl) Index(obsState state.State) int32 {
+func (quantum *QuantumImpl) Index(obsState interface{}) int32 {
 	for i, state := range quantum.states {
 		if quantum.Equal(state, obsState) {
 			return int32(i)
@@ -62,7 +52,7 @@ func (quantum *QuantumImpl) Index(obsState state.State) int32 {
 	return -1
 }
 
-func (quantum *QuantumImpl) Include(obsState state.State) bool {
+func (quantum *QuantumImpl) Include(obsState interface{}) bool {
 	return quantum.Index(obsState) >= 0
 }
 
@@ -76,19 +66,19 @@ func (quantum *QuantumImpl) Limit(limit int32) Quantum {
 	return quantum
 }
 
-func (quantum *QuantumImpl) Sorted(f func(state.State) state.State) Quantum {
+func (quantum *QuantumImpl) Sorted(f func(interface{}) interface{}) Quantum {
 
 	return quantum
 }
 
-func (quantum *QuantumImpl) Equal(state state.State, obsState state.State) bool {
-	if state.ToString() == obsState.ToString() {
+func (quantum *QuantumImpl) Equal(state interface{}, obsState interface{}) bool {
+	if state == obsState {
 		return true
 	}
 	return false
 }
 
-func (quantum *QuantumImpl) Pipe(f func(state.State)) Quantum {
+func (quantum *QuantumImpl) Pipe(f func(interface{})) Quantum {
 	for _, state := range quantum.states {
 		f(state)
 	}
@@ -96,8 +86,8 @@ func (quantum *QuantumImpl) Pipe(f func(state.State)) Quantum {
 }
 
 // This Method will update with Tree Search
-func (quantum *QuantumImpl) Filter(f func(state.State) bool) Quantum {
-	filterStates := make([]state.State, 0)
+func (quantum *QuantumImpl) Filter(f func(interface{}) bool) Quantum {
+	filterStates := make([]interface{}, 0)
 	for _, state := range quantum.states {
 		if f(state) {
 			filterStates = append(filterStates, state)
@@ -107,33 +97,26 @@ func (quantum *QuantumImpl) Filter(f func(state.State) bool) Quantum {
 	return quantum
 }
 
-func (quantum *QuantumImpl) Collect() []state.State {
-	
+func (quantum *QuantumImpl) Collect() []interface{} {
 	return quantum.pageable(quantum.states)
 }
 
-func (quantum *QuantumImpl) pageable(states []state.State) []state.State {
-	// if quantum.limit == 0 {
-	// 	quantum.limit = 500
-	// }
-
-	// quantum.states = quantum.states[quantum.skip:quantum.limit]
-	// scopeLimit := int32(len(quantum.states)) > quantum.limit ? int32(len(quantum.states)) : quantum.limit
-	return states
-}
-
-func (quantum *QuantumImpl) pageableInterface(states []state.State) []interface{} {
-	interfaces := make([]interface{}, len(quantum.states))
-	for i, state := range states {
-		interfaces[i] = state
-	}
-	return interfaces
-}
-
-func (quantum *QuantumImpl) CollectInterface() []interface{} {
+func (quantum *QuantumImpl) pageable(states []interface{}) []interface{} {
 	if quantum.limit == 0 {
 		quantum.limit = 500
 	}
-	quantum.states = quantum.states[quantum.skip:quantum.limit]
-	return quantum.pageableInterface(quantum.states)
+	scopeLimit := int32(0)
+	lenState := int32(len(quantum.states))
+	if lenState < quantum.limit {
+		scopeLimit = lenState
+	} else {
+		scopeLimit = quantum.limit
+	}
+
+	quantum.states = quantum.states[quantum.skip:scopeLimit]
+	return states
+}
+
+func (quantum *QuantumImpl) All() []interface{} {
+	return quantum.states
 }

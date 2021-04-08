@@ -1,23 +1,20 @@
 package qu
 
-import . "github.com/emtabb/state"
-
 type Quantum interface {
-	ByInterfaces([]interface{}) Quantum
-	Collect() []State
-	CollectInterface() []interface{}
-	Init([]State) Quantum
-	Index(State) int32
-	Include(State) bool 
-	Of(...State) Quantum
-	Map(func (State) State) Quantum
-	FlatMap(func ([]State) []State) Quantum
-	Reduce(State, func (State, State) State) Quantum
-	Filter(func (State) bool) Quantum
-	Quantized(func (State) []State) Quantum
+	All() []interface{}
+	Collect() []interface{}
+	Init([]interface{}) Quantum
+	Index(interface{}) int32
+	Include(interface{}) bool
+	Of(...interface{}) Quantum
+	Map(func (interface{}) interface{}) Quantum
+	FlatMap(func ([]interface{}) []interface{}) Quantum
+	Reduce(interface{}, func (interface{}, interface{}) interface{}) Quantum
+	Filter(func (interface{}) bool) Quantum
+	Quantized(func (interface{}) []interface{}) Quantum
 	Skip(int32) Quantum
 	Limit(int32) Quantum
-	Sorted(func(State) State) Quantum
-	Pipe(func(State)) Quantum
-	Equal(State, State) bool
+	Sorted(func(interface{}) interface{}) Quantum
+	Pipe(func(interface{})) Quantum
+	Equal(interface{}, interface{}) bool
 }
