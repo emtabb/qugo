@@ -14,6 +14,11 @@ type QuantumImpl struct {
 	tensor []state.States
 }
 
+const (
+	INFINITY = 9223372036854775807
+	UN_LIMITED = -1
+)
+
 func (quantum *QuantumImpl) All() state.States {
 	return new(state.List).ByStates(quantum.states)
 }
@@ -64,8 +69,13 @@ func (quantum *QuantumImpl) ForEach(f func(state.State)) {
 	}
 }
 
-func (quantum *QuantumImpl) Reduce(reduceState state.State, f func (state1 state.State, state2 state.State) state.State) Quantum {
+
+func (quantum *QuantumImpl) Reduce(f func (state1 state.State, state2 state.State) state.State) Quantum {
+	reduceState := quantum.states[0]
 	for i, _state := range quantum.states {
+		if i == 0 {
+			continue
+		}
 		quantum.states[i] = f(reduceState, _state)
 	}
 	return quantum
@@ -97,6 +107,9 @@ func (quantum *QuantumImpl) Skip(skip int32) Quantum {
 }
 
 func (quantum *QuantumImpl) Limit(limit int32) Quantum {
+	if limit == UN_LIMITED {
+		limit = INFINITY
+	}
 	quantum.limit = limit
 	return quantum
 }
