@@ -15,7 +15,7 @@ type QuantumImpl struct {
 }
 
 const (
-	INFINITY = 9223372036854775807
+	INFINITY =  2147483647
 	UN_LIMITED = -1
 )
 
