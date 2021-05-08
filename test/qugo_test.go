@@ -1,6 +1,7 @@
 package test
 
 import (
+	"encoding/json"
 	"github.com/emtabb/qugo"
 	"github.com/emtabb/qugo/qu"
 	"github.com/emtabb/qugo/qu/impl"
@@ -10,34 +11,43 @@ import (
 )
 
 type DataImplementState struct {
-	strField string
-	intField int
+	StrField string `json:"str_field"`
+	IntField int `json:"int_field"`
 }
 
 func seedingDataInterface() []interface{} {
 	return impl.ToInterfaces(seedingDataStates().ToArray())
 }
 
+func seedingDataInterfaceByInteger() []interface{} {
+	interfaces := make([]interface{}, 0)
+	integers := []int { 1, 2, 3, 4, 5, 6, 7 ,8 ,9 ,10}
+	for i := range integers {
+		interfaces = append(interfaces, integers[i])
+	}
+	return interfaces
+}
+
 func seedingDataStates() state.States {
 	states := []state.State {
-		DataImplementState{strField: "field1", intField: 1},
-		DataImplementState{strField: "field2", intField: 2},
-		DataImplementState{strField: "field3", intField: 3},
-		DataImplementState{strField: "field4", intField: 4},
-		DataImplementState{strField: "field5", intField: 5},
-		DataImplementState{strField: "field6", intField: 6},
-		DataImplementState{strField: "field7", intField: 7},
-		DataImplementState{strField: "field8", intField: 8},
-		DataImplementState{strField: "field9", intField: 9},
-		DataImplementState{strField: "field10", intField: 10},
+		DataImplementState{StrField: "field1", IntField: 1},
+		DataImplementState{StrField: "field2", IntField: 2},
+		DataImplementState{StrField: "field3", IntField: 3},
+		DataImplementState{StrField: "field4", IntField: 4},
+		DataImplementState{StrField: "field5", IntField: 5},
+		DataImplementState{StrField: "field6", IntField: 6},
+		DataImplementState{StrField: "field7", IntField: 7},
+		DataImplementState{StrField: "field8", IntField: 8},
+		DataImplementState{StrField: "field9", IntField: 9},
+		DataImplementState{StrField: "field10", IntField: 10},
 	}
 	return new(state.List).Generate().ByStates(states)
 }
 
 func functionForTestMapLimitOffsetData(_state state.State) state.State {
 	changeData := _state.(DataImplementState)
-	changeData.intField++
-	changeData.strField += " new field"
+	changeData.IntField++
+	changeData.StrField += " new field"
 	newArrayStates := []state.State {
 		changeData,
 	}
@@ -83,14 +93,14 @@ func TestInitInterfaces(t *testing.T) {
 
 	log.Println("=========================")
 	for i := range qu2.ToArray() {
-		log.Println(qu[i])
+		log.Println(qu2.ToArray()[i])
 	}
 }
 
 func functionForFlatMap(_state state.State) qu.Quantum {
 	changeData := _state.(DataImplementState)
-	changeData.intField++
-	changeData.strField += " new field"
+	changeData.IntField++
+	changeData.StrField += " new field"
 	newArrayStates := []state.State {
 		changeData,
 	}
@@ -114,7 +124,7 @@ func TestFlatMapForEach(t *testing.T)  {
 		Limit(6).Skip(1).
 		ForEach(func(s state.State) {
 			space := s.(DataImplementState)
-			log.Println(space.strField, space.intField)
+			log.Println(space.StrField, space.IntField)
 		})
 }
 
@@ -131,13 +141,37 @@ func TestFilter(t *testing.T)  {
 	qu := qugo.Operator().ByInterfaces(seedingDataInterface()).
 		Filter(func(s state.State) bool {
 			changeData := s.(DataImplementState)
-			return changeData.intField > 5
+			return changeData.IntField > 5
 		}).Collect()
 	log.Println(qu)
 }
 
 func TestIndex(t *testing.T) {
 	qu := qugo.Operator().ByInterfaces(seedingDataInterface()).
-		Index(DataImplementState{strField: "field5", intField: 5})
+		Index(DataImplementState{StrField: "field5", IntField: 5})
 	log.Println(qu)
+}
+
+func TestIntegerInterfaces(t *testing.T) {
+	qugo.Operator().ByInterfaces(seedingDataInterfaceByInteger()).
+		ForEach(func(state_ state.State) {
+			log.Println(state_)
+	})
+}
+
+func TestMapWithJsonParseForEach(t *testing.T)  {
+	qugo.Operator().ByInterfaces(seedingDataInterface()).
+		Map(func(s state.State) state.State {
+			changeData := s.(DataImplementState)
+			data, _ := json.Marshal(changeData)
+			log.Println("data ", data)
+			var revertData DataImplementState
+			json.Unmarshal(data, &revertData)
+			log.Println("revert data ", revertData)
+			return s
+		}).
+		Limit(6).Skip(1).
+		ForEach(func(s state.State) {
+			log.Println(s)
+		})
 }

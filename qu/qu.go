@@ -16,7 +16,7 @@ type Quantum interface {
 	FlatMap(func (state.State) Quantum) Quantum
 	Of(...state.State) Quantum
 	Map(func (state.State) state.State) Quantum
-	Reduce(state.State, func (state.State, state.State) state.State) Quantum
+	Reduce(func (state.State, state.State) state.State) Quantum
 	Quantized(func (state.State) state.States) Quantum
 	Skip(int32) Quantum
 	Limit(int32) Quantum
